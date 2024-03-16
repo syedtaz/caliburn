@@ -1,0 +1,4 @@
+(executable
+ (public_name caliburn)
+ (name main)
+ (libraries caliburn))
