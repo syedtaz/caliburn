@@ -1,2 +1,4 @@
 (library
- (name caliburn))
+ (name caliburn)
+ (libraries core async)
+ (preprocess (pps ppx_jane ppx_let ppx_sexp_conv)))

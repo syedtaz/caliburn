@@ -5,22 +5,18 @@
 (generate_opam_files true)
 
 (source
- (github username/reponame))
+ (github syedtaz/caliburn))
 
-(authors "Author Name")
+(authors "Tazmilur Saad")
 
-(maintainers "Maintainer Name")
+(maintainers "Tazmilur Saad")
 
-(license LICENSE)
-
-(documentation https://url/to/documentation)
+(license MIT)
 
 (package
  (name caliburn)
- (synopsis "A short synopsis")
- (description "A longer description")
+ (synopsis "Distributed key-value cache written in pure OCaml.")
+ (description "Distributed key-value cache written in pure OCaml.")
  (depends ocaml dune)
  (tags
-  (topics "to describe" your project)))
-
-; See the complete stanza docs at https://dune.readthedocs.io/en/stable/dune-files.html#dune-project
+  ("kv" "cache")))
