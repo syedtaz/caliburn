@@ -1,5 +1,6 @@
 open Core
 open Mealy
+open Async
 
 type message =
   [ `SetSuccess
@@ -8,21 +9,21 @@ type message =
   ]
 
 type events = [ `Responded ]
-type state = Out_channel.t
+type state = Writer.t
 
 let handler state msg =
   match msg with
   | `SetSuccess ->
-    Out_channel.fprintf state "Successfully set value";
+    Writer.write state "Successfully set value.\n";
     `Responded, state
   | `GetFail v ->
-    Out_channel.fprintf state "Could not find [%s]" v;
+    Writer.write state (Format.sprintf "Could not find [%s].\n" v);
     `Responded, state
   | `GetSuccess (k, v) ->
-    Out_channel.fprintf state "[%s] -> [%s]" k v;
+    Writer.write state (Format.sprintf "[%s] -> [%s].\n" k v);
     `Responded, state
 ;;
 
 let machine : (message, events, state) Mealy.t =
-  { initial = Out_channel.stdout; action = handler }
+  { initial = force Writer.stdout; action = handler }
 ;;
