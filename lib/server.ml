@@ -1,20 +1,34 @@
 open Core
 open Async
+open Mealy
 
-(* Thanks to https://dev.realworldocaml.org/concurrent-programming.html *)
+type events =
+  [ `SetSuccess
+  | `GetSuccess of string * string
+  | `GetFail of string
+  ]
 
-let rec copy_blocks buffer r w =
+let (event_r, event_w) : events Pipe.Reader.t * events Pipe.Writer.t = Pipe.create ()
+
+let rec sink (machine : ('event, 'b) s) =
+  let%bind result = Pipe.read event_r in
+  match result with
+  | `Ok e ->
+    let _, next = machine.action e in
+    sink next
+  | `Eof -> sink machine
+;;
+
+let rec handler buffer r =
   match%bind Reader.read r buffer with
-  | `Eof -> return ()
-  | `Ok bytes_read ->
-    Writer.write w (Bytes.to_string buffer) ~len:bytes_read;
-    let%bind () = Writer.flushed w in
-    copy_blocks buffer r w
+  | `Eof ->
+    let converted = Bytes.to_string buffer in
+    return (Pipe.write_without_pushback event_w (`GetFail converted))
+  | `Ok _ -> handler buffer r
 ;;
 
 let run () =
   let port = Tcp.Where_to_listen.of_port 8765 in
-  let f _ r w = copy_blocks (Bytes.create (16 * 1024)) r w in
-  let server = Tcp.Server.create ~on_handler_error:`Raise port f in
-  ignore server
+  let f _addr r _w = handler (Bytes.create (16 * 1024)) r in
+  ignore (Tcp.Server.create ~max_connections:32 ~backlog:16 ~on_handler_error:`Raise port f)
 ;;
