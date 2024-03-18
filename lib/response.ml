@@ -23,6 +23,6 @@ let handler state msg =
     `Responded, state
 ;;
 
-let machine : (message, events) mealy =
-  unfold { initial = Out_channel.stdout; action = handler }
+let machine : (message, events, state) Mealy.t =
+  { initial = Out_channel.stdout; action = handler }
 ;;

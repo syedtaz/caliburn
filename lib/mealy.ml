@@ -1,9 +1,9 @@
-type ('a, 'b, 's) mealy' =
+type ('a, 'b, 's) t =
   { initial : 's
   ; action : 's -> 'a -> 'b * 's
   }
 
-type ('a, 'b) mealy = { action : 'a -> 'b * ('a, 'b) mealy }
+type ('a, 'b) s = { action : 'a -> 'b * ('a, 'b) s }
 
 let unfold { initial; action } =
   let rec go state =
@@ -14,4 +14,14 @@ let unfold { initial; action } =
     }
   in
   go initial
+;;
+
+let ( >>> ) (f : ('a, 'b, 's1) t) (g : ('b, 'c, 's2) t) =
+  let initial = f.initial, g.initial in
+  let action state msg =
+    let output, newstate = f.action (fst state) msg in
+    let output', newstate' = g.action (snd state) output in
+    output', (newstate, newstate')
+  in
+  unfold { initial; action }
 ;;

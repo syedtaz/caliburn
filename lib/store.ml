@@ -34,4 +34,4 @@ let handler state msg =
   | `Set (key, data) -> set state ~key ~data
 ;;
 
-let machine : (message, events) mealy = unfold { initial = empty; action = handler }
+let machine : (message, events, state) Mealy.t = { initial = empty; action = handler }
