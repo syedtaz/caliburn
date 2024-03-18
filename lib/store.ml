@@ -8,7 +8,8 @@ type message =
 
 type events =
   [ `SetSuccess
-  | `GetSuccess
+  | `GetSuccess of string * string
+  | `GetFail of string
   ]
 
 type state = (string, Bytes.t, String.comparator_witness) Map.t
@@ -17,12 +18,8 @@ let empty : state = Map.empty (module String)
 
 let get (state : state) ~key =
   match Map.find state key with
-  | Some v ->
-    Out_channel.printf "%s" (Bytes.to_string v);
-    `GetSuccess, state
-  | None ->
-    Out_channel.printf "Could not find %s" key;
-    `GetSuccess, state
+  | Some v -> `GetSuccess (key, Bytes.to_string v), state
+  | None -> `GetFail key, state
 ;;
 
 let set (state : state) ~key ~data =
