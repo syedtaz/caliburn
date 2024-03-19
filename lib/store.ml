@@ -2,28 +2,28 @@ open Core
 open Mealy
 
 type message =
-  [ `Set of string * Bytes.t
+  [ `Set of string * string
   | `Get of string
   ]
 
 type events =
-  [ `SetSuccess
+  [ `SetSuccess of string * string
   | `GetSuccess of string * string
   | `GetFail of string
   ]
 
-type state = (string, Bytes.t, String.comparator_witness) Map.t
+type state = (string, string, String.comparator_witness) Map.t
 
 let get (state : state) ~key =
   match Map.find state key with
-  | Some v -> `GetSuccess (key, Bytes.to_string v), state
+  | Some v -> `GetSuccess (key, v), state
   | None -> `GetFail key, state
 ;;
 
 let set (state : state) ~key ~data =
   match Map.add state ~key ~data with
-  | `Ok state' -> `SetSuccess, state'
-  | `Duplicate -> `SetSuccess, state
+  | `Ok state' -> `SetSuccess (key, data), state'
+  | `Duplicate -> `SetSuccess (key, data), state
 ;;
 
 let handler state msg =

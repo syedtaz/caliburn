@@ -1,9 +1,11 @@
 open Core
-open Utils
+open Mealy
 
-type message =
-  [ `Append of string * Bytes.t
-  | `AppendMany of (string * Bytes.t) list
+type message = Store.events
+
+type events =
+  [ `Persisted
+  | `NotNeeded
   ]
 
 type state =
@@ -11,16 +13,13 @@ type state =
   ; chan : Out_channel.t
   }
 
-let create filename =
-  { index = 0; chan = Out_channel.create ~append:true filename}
-
 let entry index key value =
   let a x = Sexp.Atom x
   and l x = Sexp.List x in
   l
     [ l [ a "index"; Int.sexp_of_t index ]
     ; l [ a "key"; String.sexp_of_t key ]
-    ; l [ a "data"; Bytes.sexp_of_t value ]
+    ; l [ a "data"; String.sexp_of_t value ]
     ]
 ;;
 
@@ -30,11 +29,18 @@ let append { index; chan } ~key ~value =
   { index = index + 1; chan }
 ;;
 
-let append_many init_state ~pairs =
-  List.fold pairs ~init:init_state ~f:(fun state (key, value) -> append state ~key ~value)
+let handler state (msg : message) =
+  match msg with
+  | `GetFail (_x : string) -> `NotNeeded, state
+  | `GetSuccess (_x, _y : string * string) -> `NotNeeded, state
+  | `SetSuccess (key, value) ->
+    let res = append state ~key ~value in
+    Out_channel.flush state.chan;
+    `Persisted, res
 ;;
 
-let handler state ~msg = match msg with
-  | `Append (key, value) -> append state ~key ~value <* flush state.chan
-  | `AppendMany pairs -> append_many state ~pairs <* flush state.chan
+let create filename =
+  let initial = { index = 0; chan = Out_channel.create ~append:true filename } in
+  let action = handler in
+  { initial; action }
 ;;

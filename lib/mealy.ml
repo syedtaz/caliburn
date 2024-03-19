@@ -29,16 +29,16 @@ let ( >>> ) (f : ('a, 'b, 's1) t) (g : ('b, 'c, 's2) t) =
     let output', newstate' = g.action (snd state) output in
     output', (newstate, newstate')
   in
-  unfold { initial; action }
+  { initial; action }
 ;;
 
 (** Parallel composition *)
 let ( *** ) (f : ('a, 'b, 's1) t) (g : ('c, 'd, 's2) t) =
   let initial = f.initial, g.initial in
-  let action (state_f, state_g) (msg_f, msg_g) =
-    let output, newstate = f.action state_f msg_f
-    and output', newstate' = g.action state_g msg_g in
+  let action (state_f, state_g) msg =
+    let output, newstate = f.action state_f msg
+    and output', newstate' = g.action state_g msg in
     (output, output'), (newstate, newstate')
   in
-  unfold { initial; action }
+  { initial; action }
 ;;

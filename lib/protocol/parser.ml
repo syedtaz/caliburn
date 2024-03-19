@@ -1,7 +1,7 @@
 open Angstrom
 
 type command =
-  [ `Set of string * Bytes.t
+  [ `Set of string * string
   | `Get of string
   ]
 
@@ -15,7 +15,7 @@ let set =
   let open Angstrom.Let_syntax in
   let%bind key = string "set" *> char ',' *> take_till (fun x -> Char.equal x ',') <* char ',' in
   let%bind value = take_while (fun _ -> true) in
-  return (`Set (key, Bytes.of_string value))
+  return (`Set (key, value))
 ;;
 
 let parse s = parse_string ~consume:All (get <|> set) s

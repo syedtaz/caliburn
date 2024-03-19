@@ -2,19 +2,14 @@ open Core
 open Mealy
 open Async
 
-type message =
-  [ `SetSuccess
-  | `GetSuccess of string * string
-  | `GetFail of string
-  ]
-
+type message = Store.events
 type events = [ `Responded ]
 type state = Writer.t
 
 let handler state msg =
   match msg with
-  | `SetSuccess ->
-    Writer.write state "Successfully set value.\n";
+  | `SetSuccess (k, v) ->
+    Writer.write state (Format.sprintf "[%s] set to [%s].\n" k v);
     `Responded, state
   | `GetFail v ->
     Writer.write state (Format.sprintf "Could not find [%s].\n" v);
