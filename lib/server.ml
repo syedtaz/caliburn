@@ -1,10 +1,7 @@
 open Core
 open Async
 
-type command =
-  [ `Set of string * Bytes.t
-  | `Get of string
-  ]
+type command = Protocol.Parser.command
 
 let (event_r, event_w) : command Pipe.Reader.t * command Pipe.Writer.t = Pipe.create ()
 let source () = Source.generate event_r
@@ -13,14 +10,9 @@ let rec handler buffer r length =
   match%bind Reader.read r buffer with
   | `Eof ->
     let converted = Stdlib.Bytes.sub_string buffer 0 length in
-    let splits = String.split converted ~on:':' in
-    (match List.nth_exn splits 0 with
-     | "get" ->
-       return
-       @@ Pipe.write_without_pushback
-            event_w
-            (`Get (String.concat ~sep:":" (List.tl_exn splits)))
-     | _ -> return ())
+    (match Protocol.Parser.parse converted with
+     | Ok v -> return (Pipe.write_without_pushback event_w v)
+     | Error _ -> return ())
   | `Ok l -> handler buffer r (length + l)
 ;;
 

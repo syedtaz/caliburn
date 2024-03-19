@@ -1,0 +1,4 @@
+(library
+ (name protocol)
+ (libraries angstrom)
+ (preprocess (pps ppx_jane ppx_let)))
