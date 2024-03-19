@@ -14,8 +14,6 @@ type events =
 
 type state = (string, Bytes.t, String.comparator_witness) Map.t
 
-let empty : state = Map.empty (module String)
-
 let get (state : state) ~key =
   match Map.find state key with
   | Some v -> `GetSuccess (key, Bytes.to_string v), state
@@ -34,4 +32,6 @@ let handler state msg =
   | `Set (key, data) -> set state ~key ~data
 ;;
 
-let machine : (message, events, state) Mealy.t = { initial = empty; action = handler }
+let machine : (message, events, state) Mealy.t =
+  { initial = Map.empty (module String); action = handler }
+;;

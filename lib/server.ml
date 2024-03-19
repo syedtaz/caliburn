@@ -1,29 +1,26 @@
 open Core
 open Async
-open Mealy
 
-type events =
-  [ `SetSuccess
-  | `GetSuccess of string * string
-  | `GetFail of string
+type command =
+  [ `Set of string * Bytes.t
+  | `Get of string
   ]
 
-let (event_r, event_w) : events Pipe.Reader.t * events Pipe.Writer.t = Pipe.create ()
-
-let rec sink (machine : ('event, 'b) s) =
-  let%bind result = Pipe.read' event_r in
-  match result with
-  | `Ok es ->
-    let final = Queue.fold es ~init:machine ~f:(fun acc e -> snd (acc.action e)) in
-    sink final
-  | `Eof -> sink machine
-;;
+let (event_r, event_w) : command Pipe.Reader.t * command Pipe.Writer.t = Pipe.create ()
+let source () = Source.generate event_r
 
 let rec handler buffer r length =
   match%bind Reader.read r buffer with
   | `Eof ->
     let converted = Stdlib.Bytes.sub_string buffer 0 length in
-    return (Pipe.write_without_pushback event_w (`GetFail converted))
+    let splits = String.split converted ~on:':' in
+    (match List.nth_exn splits 0 with
+     | "get" ->
+       return
+       @@ Pipe.write_without_pushback
+            event_w
+            (`Get (String.concat ~sep:":" (List.tl_exn splits)))
+     | _ -> return ())
   | `Ok l -> handler buffer r (length + l)
 ;;
 
