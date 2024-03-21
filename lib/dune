@@ -1,4 +1,4 @@
 (library
  (name caliburn)
- (libraries core async protocol)
+ (libraries core async protocol lsm)
  (preprocess (pps ppx_jane ppx_let ppx_sexp_conv)))
