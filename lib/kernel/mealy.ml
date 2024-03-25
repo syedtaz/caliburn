@@ -35,3 +35,20 @@ let ( *** ) (f : ('a, 'b, 's1) t) (g : ('c, 'd, 's2) t) =
   in
   { initial; action }
 ;;
+
+module type Machine0 = sig
+  type input
+  type output
+  type state
+
+  val machine : (input, output) s
+end
+
+module type Machine1 = sig
+  type input
+  type output
+  type state
+  type driver
+
+  val machine : driver -> (input, output, state) t
+end
