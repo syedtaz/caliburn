@@ -14,3 +14,9 @@ let of_bytes (id : int) ~(payload : Bytes.t) =
   let logid = UInt32.of_int id in
   { crc; size; logid; payload }
 ;;
+
+let serialize {crc; size; logid; payload} =
+  let crc' = UInt32.to_int crc in
+  let size' = UInt16.to_int size in
+  let logid' = UInt32.to_int logid in
+  Format.sprintf "%d%d%d%s" crc' size' logid' (Bytes.to_string payload)

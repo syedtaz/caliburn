@@ -30,6 +30,7 @@ let crc32 (bts : Bytes.t) =
        let chr' = Char.to_int chr |> of_int in
        let t = logand (logxor chr' acc) static |> to_int in
        logxor (shift_right acc 8) (Array.get table t)))
+[@@inline always]
 ;;
 
 let%expect_test _ =

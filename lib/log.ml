@@ -13,18 +13,12 @@ type state =
   ; chan : Out_channel.t
   }
 
-let entry index key value =
-  let a x = Sexp.Atom x
-  and l x = Sexp.List x in
-  l
-    [ l [ a "index"; Int.sexp_of_t index ]
-    ; l [ a "key"; String.sexp_of_t key ]
-    ; l [ a "data"; String.sexp_of_t value ]
-    ]
-;;
+let entry key value =
+  let payload = Stdlib.Bytes.concat (Bytes.of_string "|") [key; value] in
+  Wal.Record.(of_bytes 0 ~payload |> serialize)
 
 let append { index; chan } ~key ~value =
-  let payload = entry index key value |> Sexp.to_string_mach in
+  let payload = entry key value in
   let () = Out_channel.fprintf chan "%s\n" payload in
   { index = index + 1; chan }
 ;;
@@ -34,7 +28,9 @@ let handler state (msg : message) =
   | `GetFail (_x : string) -> `NotNeeded, state
   | `GetSuccess (_x, _y : string * string) -> `NotNeeded, state
   | `SetSuccess (key, value) ->
-    let res = append state ~key ~value in
+    let key' = Bytes.of_string key in
+    let value' = Bytes.of_string value in
+    let res = append state ~key:key' ~value:value' in
     Out_channel.flush state.chan;
     `Persisted, res
 ;;
