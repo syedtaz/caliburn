@@ -1,2 +1,4 @@
 (test
- (name test_caliburn))
+ (name test_lsm)
+ (libraries caliburn)
+ (preprocess (pps ppx_jane ppx_let ppx_expect ppx_assert)))

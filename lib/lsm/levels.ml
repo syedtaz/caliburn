@@ -6,10 +6,14 @@ type t =
   ; state : Random.State.t
   }
 
-let create ~total ~probability =
+let create_with_state ~state ~total ~probability =
   match total < 0 || Float.( >=. ) probability 1.0 || Float.( <=. ) probability 0.0 with
   | true -> None
-  | false -> Some { total; probability; state = Random.State.make_self_init () }
+  | false -> Some { total; probability; state }
+;;
+
+let create ~total ~probability =
+  create_with_state ~state:(Random.State.make_self_init ()) ~total ~probability
 ;;
 
 let poll t =
@@ -26,4 +30,10 @@ let poll t =
     | false -> !h
   in
   aux ()
+;;
+
+let%expect_test _ =
+  let l = { total = 10; probability = 0.2; state = Random.State.make [| 1; 2; 3; 4 |] } in
+  Format.printf "%d" (poll l);
+  [%expect {| 1 |}]
 ;;
