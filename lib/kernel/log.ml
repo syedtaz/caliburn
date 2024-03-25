@@ -1,21 +1,11 @@
-module type Sig = sig
-  type key
-  type value
-
-  val byte_of_key : key -> Bytes.t
-  val byte_of_value : value -> Bytes.t
-end
-
-module Make (S : Sig) : Mealy.Machine1 = struct
+module Make (S : Common.Sig) = struct
   open Core
 
-  type key = S.key
-  type value = S.value
   type driver = string
 
   type input =
-    [ `Set of key * value
-    | `Del of key
+    [ `Set of S.key * S.value
+    | `Del of S.key
     ]
 
   type output = input
@@ -54,3 +44,5 @@ module Make (S : Sig) : Mealy.Machine1 = struct
     { initial; action }
   ;;
 end
+
+module ByteLog = Make (Common.S)

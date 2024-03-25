@@ -28,20 +28,3 @@ val ( >>> ) : ('i, 'o, 's1) t -> ('o, 'c, 's2) t -> ('i, 'c, 's1 * 's2) t
     of the same type, runs [a] and [b] in parallel and returns the output from
     both. *)
 val ( *** ) : ('c, 'o, 's1) t -> ('c, 'd, 's2) t -> ('c, 'o * 'd, 's1 * 's2) t
-
-module type Machine0 = sig
-  type input
-  type output
-  type state
-
-  val machine : (input, output) s
-end
-
-module type Machine1 = sig
-  type input
-  type output
-  type state
-  type driver
-
-  val machine : driver -> (input, output, state) t
-end
