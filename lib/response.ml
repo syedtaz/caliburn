@@ -1,5 +1,5 @@
 open Core
-open Mealy
+open Kernel.Mealy
 open Async
 
 type message = Store.events
@@ -19,6 +19,6 @@ let handler state msg =
     `Responded, state
 ;;
 
-let machine : (message, events, state) Mealy.t =
+let machine : (message, events, state) Kernel.Mealy.t =
   { initial = force Writer.stdout; action = handler }
 ;;

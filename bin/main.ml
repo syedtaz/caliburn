@@ -1,4 +1,4 @@
-open Core
+(* open Core
 open Async
 open Caliburn
 open Caliburn.Mealy
@@ -10,4 +10,6 @@ let () =
   Server.run ();
   don't_wait_for (input.feed (unfold internal));
   never_returns (Scheduler.go ())
-;;
+;; *)
+
+let () = ()

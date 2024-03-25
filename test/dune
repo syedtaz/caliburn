@@ -2,3 +2,5 @@
  (name test_lsm)
  (libraries caliburn)
  (preprocess (pps ppx_jane ppx_let ppx_expect ppx_assert)))
+
+ (env (dev (flags (:standard -w -32))))

@@ -1,5 +1,5 @@
 open Core
-open Mealy
+open Kernel.Mealy
 
 type message = Store.events
 
