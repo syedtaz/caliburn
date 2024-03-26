@@ -1,42 +1,49 @@
 open Core
-open Kernel.Mealy
 
-type message = Store.events
+module Make (S : Kernel.Common.Sig) = struct
 
-type events =
-  [ `Persisted
-  | `NotNeeded
-  ]
+  type driver = string
 
-type state =
-  { index : int
-  ; chan : Out_channel.t
-  }
+  type input =
+    [ `Set of S.key * S.value
+    | `Del of S.key
+    ]
 
-let entry key value =
-  let payload = Stdlib.Bytes.concat (Bytes.of_string "|") [key; value] in
-  Wal.Record.(of_bytes 0 ~payload |> serialize)
+  type output = input
 
-let append { index; chan } ~key ~value =
-  let payload = entry key value in
-  let () = Out_channel.fprintf chan "%s\n" payload in
-  { index = index + 1; chan }
-;;
+  type state =
+    { index : int
+    ; chan : Out_channel.t
+    }
 
-let handler state (msg : message) =
-  match msg with
-  | `GetFail (_x : string) -> `NotNeeded, state
-  | `GetSuccess (_x, _y : string * string) -> `NotNeeded, state
-  | `SetSuccess (key, value) ->
-    let key' = Bytes.of_string key in
-    let value' = Bytes.of_string value in
-    let res = append state ~key:key' ~value:value' in
-    Out_channel.flush state.chan;
-    `Persisted, res
-;;
+  let entry_kv key value =
+    let key' = S.byte_of_key key in
+    let value' = S.byte_of_value value in
+    let payload = Stdlib.Bytes.concat (Bytes.of_string "|") [ key'; value' ] in
+    Wal.Record.of_bytes 0 ~payload |> Wal.Record.serialize
+  [@@inline always]
+  ;;
 
-let create filename =
-  let initial = { index = 0; chan = Out_channel.create ~append:true filename } in
-  let action = handler in
-  { initial; action }
-;;
+  let entry_k key =
+    let payload = S.byte_of_key key in
+    Wal.Record.of_bytes 0 ~payload |> Wal.Record.serialize
+  [@@inline always]
+  ;;
+
+  let handler { index; chan } event =
+    let () =
+      match event with
+      | `Set (key, value) -> Out_channel.fprintf chan "%s\n" (entry_kv key value)
+      | `Del key -> Out_channel.fprintf chan "%s\n" (entry_k key)
+    in
+    event, { index = index + 1; chan }
+  ;;
+
+  let machine filename : (input, output, state) Kernel.Mealy.t =
+    let initial = { index = 0; chan = Out_channel.create ~append:true filename } in
+    let action = handler in
+    { initial; action }
+  ;;
+end
+
+module ByteLog = Make (Kernel.Common.S)

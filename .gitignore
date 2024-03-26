@@ -30,3 +30,4 @@ _opam/
 
 taskell.md
 *.log
+debug.plist

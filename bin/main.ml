@@ -1,32 +1,15 @@
-(* open Core
-   open Async
-   open Caliburn
-   open Kernel.Mealy
-
-   let internal = Store.machine >>> Response.machine *** Log.create "simple.log"
-   let input = Server.source ()
-
-   let () =
-   Server.run ();
-   don't_wait_for (input.feed (unfold internal));
-   never_returns (Scheduler.go ())
-   ;; *)
-
-open Kernel
-open Core
-
-module L = Log.ByteLog
-
-let internal : (L.input, L.output) Mealy.s =
-  let open Kernel.Mealy in
-  unfold (L.machine "somefile.log" >>> L.machine "someotherfile.log")
-;;
+open Wal.Crc
 
 let () =
-  let lst =
-    List.map
-      [ "a", "a_v"; "b", "b_v" ]
-      ~f:(fun (k, v) -> `Set (Bytes.of_string k, Bytes.of_string v))
+  let open Bin_prot in
+  let buffer = Common.create_buf 128 in
+  let string =
+    Bytes.of_string
+      "wYdg5EHFIEEvfirSXp9Ktc9dGLVNklSfwYdg5EHFIEEvfirSXp9Ktc9dGLVNklSfwYdg5EHFIEEvfirSXp9Ktc9dGLVNklSf"
   in
-  ignore (List.fold_left lst ~init:internal ~f:(fun acc msg -> snd (acc.action msg)))
+  let () =
+    Common.blit_bytes_buf string ~src_pos:0 buffer ~dst_pos:0 ~len:(Bytes.length string)
+  in
+  let _ = crc32_no_copy buffer 0 (Bytes.length string) in
+  ()
 ;;
