@@ -8,10 +8,24 @@ module type Sig = sig
 end
 
 module S = struct
-  type key = Bytes.t
-  type value = Bytes.t
+  open Core
 
-  let byte_of_key x = x
-  let byte_of_value x = x
-  let value_of_byte x = x
+  type key = Bytes.t [@@deriving bin_io]
+  type value = Bytes.t [@@deriving bin_io]
+end
+
+module type Serializable = sig
+  type key
+  type value
+
+  val bin_write_key : key Bin_prot.Write.writer
+  val bin_write_value : value Bin_prot.Write.writer
+  val bin_size_key : key Bin_prot.Size.sizer
+end
+
+module X0 = struct
+  open Core
+
+  type key = int [@@deriving bin_io]
+  type value = string [@@deriving bin_io]
 end

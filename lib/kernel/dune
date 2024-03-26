@@ -1,5 +1,5 @@
 (library
  (name kernel)
- (libraries core async wal)
+ (libraries core async)
   (inline_tests)
  (preprocess (pps ppx_jane ppx_let ppx_expect ppx_inline_test)))
