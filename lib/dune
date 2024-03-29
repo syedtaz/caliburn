@@ -1,5 +1,6 @@
 (library
+ (public_name caliburn)
  (name caliburn)
- (libraries core async kernel protocol lsm wal)
+ (libraries core async integers)
   (inline_tests)
  (preprocess (pps ppx_jane ppx_let ppx_sexp_conv ppx_expect ppx_inline_test)))

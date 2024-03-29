@@ -1,7 +1,7 @@
 open Core
 
-module Make (S : Kernel.Common.Serializable) = struct
-  module Serializer = Wal.Serializer.Make (S)
+module Make (S : Common.Serializable) = struct
+  module Serializer = Serializer.Make (S)
 
   type driver = string
 
@@ -26,11 +26,11 @@ module Make (S : Kernel.Common.Serializable) = struct
     event, { index = index + 1; chan }
   ;;
 
-  let machine filename : (input, output, state) Kernel.Mealy.t =
+  let machine filename : (input, output, state) Mealy.t =
     let initial = { index = 0; chan = Out_channel.create ~append:true filename } in
     let action = handler in
     { initial; action }
   ;;
 end
 
-module ByteLog = Make (Kernel.Common.S)
+module ByteLog = Make (Common.S)

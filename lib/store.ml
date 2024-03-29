@@ -1,5 +1,5 @@
 open Core
-open Kernel.Mealy
+open Mealy
 
 type message =
   [ `Set of string * string
@@ -32,6 +32,6 @@ let handler state msg =
   | `Set (key, data) -> set state ~key ~data
 ;;
 
-let machine : (message, events, state) Kernel.Mealy.t =
+let machine : (message, events, state) Mealy.t =
   { initial = Map.empty (module String); action = handler }
 ;;

@@ -15,8 +15,8 @@
 
 (package
  (name caliburn)
- (synopsis "Distributed key-value cache written in pure OCaml.")
- (description "Distributed key-value cache written in pure OCaml.")
+ (synopsis "Persistent, embedded key-value store written in pure OCaml.")
+ (description "Persistent, embedded key-value store written in pure OCaml.")
  (depends ocaml dune)
  (tags
   ("kv" "cache")))

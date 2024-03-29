@@ -1,10 +1,10 @@
 open Core
 open Async
 
-type ('a, 'b) t = { feed : ('a, 'b) Kernel.Mealy.s -> unit Deferred.t }
+type ('a, 'b) t = { feed : ('a, 'b) Mealy.s -> unit Deferred.t }
 
 let generate (reader : 'a Pipe.Reader.t) =
-  let rec f (m : ('a, 'b) Kernel.Mealy.s) =
+  let rec f (m : ('a, 'b) Mealy.s) =
     let%bind result = Pipe.read' reader in
     match result with
     | `Eof -> f m

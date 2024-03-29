@@ -3,11 +3,14 @@ open Core
 module Make (S : Comparable.S) = struct
   type node =
     { data : S.t
-    ; right : node option
-    ; down : node option
+    ; mutable right : node option
+    ; mutable down : node option
     }
 
-  let rec find (skiplo : node option) (v : S.t) : node option =
+  type t = node option
+  type s = { head : t }
+
+  let rec find (skiplo : t) (v : S.t) : t =
     let open Option.Let_syntax in
     let%bind node = skiplo in
     if S.equal node.data v
@@ -17,6 +20,15 @@ module Make (S : Comparable.S) = struct
       match S.( > ) right.data node.data with
       | true -> find node.down v
       | false -> find node.right v)
+  ;;
+
+  let rec find_ge (skiplo : t) (v : S.t) : t =
+    let open Option.Let_syntax in
+    let%bind node = skiplo in
+    match S.compare node.data v with
+    | x when x = 0 -> return node
+    | x when x < 0 -> find_ge node.right v
+    | _ -> find_ge node.down v
   ;;
 end
 
@@ -34,5 +46,4 @@ module Tests = struct
     |> Format.print_string;
     [%expect {| Could not find. |}]
   ;;
-
 end
