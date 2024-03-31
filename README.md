@@ -48,3 +48,6 @@ match DB.insert db ~key:k ~value:v with
 
 -  [CMU Database Group](https://www.youtube.com/@CMUDatabaseGroup)
 -  [Sled](https://sled.rs)
+-  [LSM-based Storage Techniques: A Survey](https://arxiv.org/abs/1812.07527)
+-  [Building an Efficient Put-Intensive Key-Value Store with Skip-Tree](https://ieeexplore.ieee.org/document/7569086)
+-  [A Practical Concurrent Index for Solid-State Drives](http://db.cs.duke.edu/papers/cikm12-ThonangiBabuYang-concurrent_ssd_index.pdf)

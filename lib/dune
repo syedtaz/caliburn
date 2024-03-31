@@ -3,4 +3,4 @@
  (name caliburn)
  (libraries core async integers)
   (inline_tests)
- (preprocess (pps ppx_jane ppx_let ppx_sexp_conv ppx_expect ppx_inline_test)))
+ (preprocess (pps ppx_jane ppx_let ppx_sexp_conv ppx_expect ppx_inline_test ppx_js_style)))
