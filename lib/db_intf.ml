@@ -15,7 +15,9 @@ module type DB = sig
   type key
   type value
   type t
-  type errors [@@deriving sexp]
+  type errors
+
+  val string_of_errors : errors -> string
 
   (** [open_db] loads the database stored at the path into memory if it exists
       or creates a database at that directory and initializes a fresh instance.*)

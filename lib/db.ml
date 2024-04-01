@@ -6,7 +6,10 @@ struct
   type key = S.key
   type value = S.value
   type t = Core_unix.File_descr.t
-  type errors = [ `Cannot_determine ] [@@deriving sexp]
+  type errors = [ `Cannot_determine ]
+
+  let string_of_errors = function
+    | `Cannot_determine -> "Cannot determine"
 
   let open_db path =
     match Sys_unix.file_exists ~follow_symlinks:true path with
