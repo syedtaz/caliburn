@@ -59,7 +59,7 @@ module Private = struct
       let (_ : a DL.Elt.t) = DL.insert_before node.keys el key in
       node.size <- node.size + 1
     | Internal (node, children) ->
-      let i, child = DL.findi_elt node.keys ~f:(fun _ k -> Poly.(>) k key) |> Option.value_exn in
+      let i, _child = DL.findi_elt node.keys ~f:(fun _ k -> Poly.(>) k key) |> Option.value_exn in (* TODO! FIXME *)
       let i' = split_if_full tree i key in
       insert_non_full key (nth children i')
   ;;

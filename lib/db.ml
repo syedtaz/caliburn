@@ -1,5 +1,9 @@
-(* type ('k, 'v) t = Database : ('k, 'v) t
+include Db_intf
 
-module Make (X : Kernel.Common.Sig) = struct
-  let open_db (_path : string) : (X.key, X.value) t = Database
-end *)
+module Make (S : Serializable) : DB with type key = S.key and type value = S.value = struct
+  type key = S.key
+  type value = S.value
+  type t = Core_unix.File_descr.t
+
+  let open_db path = Core_unix.File_descr.of_string path
+end

@@ -1,0 +1,6 @@
+(library
+ (public_name caliburn.kernel)
+ (name kernel)
+ (libraries core async integers)
+ (inline_tests)
+ (preprocess (pps ppx_jane ppx_let ppx_sexp_conv ppx_expect ppx_inline_test)))
