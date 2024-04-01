@@ -3,7 +3,7 @@ module type Serializable = Kernel.Common.Serializable
 module type DB = sig
 (** A [DB] is the module used to interact with a data store that is
     parameterized over a module that represents a [Serializable] type.
-    Given such a module,a data store can created or loaded using [open] and
+    Given such a module, a data store can created or loaded using [open] and
     you can update the store using the various functions such as [insert],
     [delete], etc.
 
