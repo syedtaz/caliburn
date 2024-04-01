@@ -4,18 +4,23 @@ open Core
 module DL = Doubly_linked
 
 type leaf
+type internal
+
 type 'a node =
   { mutable size : int
-  ; keys : 'a DL.t
+  ; mutable keys : 'a DL.t
   }
 [@@deriving sexp]
 
 type ('a, 'phantom) t =
   | Leaf : 'a node -> ('a, leaf) t
-  | Internal : ('a node * ('a, _) t DL.t) -> ('a, _) t
+  | Internal : ('a node * ('a, _) t DL.t) -> ('a, internal) t
 
 module Private = struct
-  let nth (lst : ('a, 'b) t DL.t) n =
+  let t = 2
+  let t' = (2 * t) - 1
+
+  let nth (lst : 'a DL.t) n =
     DL.findi_elt lst ~f:(fun i _ -> i = n) |> Option.value_exn |> snd |> DL.Elt.value
   ;;
 
@@ -32,6 +37,31 @@ module Private = struct
           | false ->
             if Poly.( = ) x key then Stop true else Stop (mem_aux x (nth children i)))
         ~finish:(fun _ -> false)
+  ;;
+
+  let split_if_full : type a. (a, internal) t -> int -> a -> int =
+    fun node i k ->
+    match node with
+    | Internal (data, children) ->
+      let _child = nth children i in
+      (* TODO! split_child node i *)
+      let ith_key = nth data.keys i in
+      (match Poly.( > ) k ith_key with
+       | true -> i + 1
+       | false -> i)
+  ;;
+
+  let rec insert_non_full : type a b. a -> (a, b) t -> unit =
+    fun key tree ->
+    match tree with
+    | Leaf node ->
+      let el = DL.find_elt node.keys ~f:(fun k -> Poly.(>) k key) |> Option.value_exn in
+      let (_ : a DL.Elt.t) = DL.insert_before node.keys el key in
+      node.size <- node.size + 1
+    | Internal (node, children) ->
+      let i, child = DL.findi_elt node.keys ~f:(fun _ k -> Poly.(>) k key) |> Option.value_exn in
+      let i' = split_if_full tree i key in
+      insert_non_full key (nth children i')
   ;;
 end
 
