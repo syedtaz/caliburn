@@ -32,5 +32,3 @@ module Make (S : Common.Serializable) = struct
     { initial; action }
   ;;
 end
-
-module ByteLog = Make (Common.S)

@@ -17,6 +17,8 @@ module type DB = sig
   type t
   type errors
 
+  module Bucket : Bucket_intf.Bucket
+
   val string_of_errors : errors -> string
 
   (** [open_db] loads the database stored at the path into memory if it exists

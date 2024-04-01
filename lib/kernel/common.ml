@@ -7,25 +7,21 @@ module type Sig = sig
   val value_of_byte : Bytes.t -> value
 end
 
-module S = struct
-  open Core
-
-  type key = Bytes.t [@@deriving bin_io]
-  type value = Bytes.t [@@deriving bin_io]
-end
-
 module type Serializable = sig
   type key
   type value
 
+  val compare_key : key -> key -> int
+  val hash_key : key -> int
+  val sexp_of_key : key -> Sexplib0.Sexp.t
   val bin_write_key : key Bin_prot.Write.writer
   val bin_write_value : value Bin_prot.Write.writer
   val bin_size_key : key Bin_prot.Size.sizer
 end
 
-module X0 = struct
+module S = struct
   open Core
 
-  type key = int [@@deriving bin_io]
-  type value = string [@@deriving bin_io]
+  type key = int [@@deriving bin_io, hash, sexp]
+  type value = string [@@deriving bin_io, hash, sexp]
 end

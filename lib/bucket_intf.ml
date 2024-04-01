@@ -1,23 +1,26 @@
 module type Serializable = Kernel.Common.Serializable
-
 module type Bucket = sig
   open Core
 
   type key
   type value
   type t
+  type error
+
+  val bucket : t
 
   (** [insert bucket k v] binds [v] to [k] in the bucket and returns
       the previous binding if it was set. *)
-  val insert : 'e. t -> key -> value -> (value, 'e) Result.t
+  val insert : key -> value -> (value Option.t, error) Result.t
 
   (** [get bucket k] returns the value of [k] if it was set. *)
-  val get : 'e. t -> key -> (value Option.t, 'e) Result.t
+  val get : key -> (value Option.t, error) Result.t
 
   (** [delete bucket k] removes [k] from the bucket and returns the previous
       binding if it was set. *)
-  val delete : 'e. t -> key -> (value Option.t, 'e) Result.t
+  val delete : key -> (value Option.t, error) Result.t
 
+(*
   (** [contains bucket k] returns [true] if the bucket contains the key. *)
   val contains : 'e. t -> key -> (bool, 'e) Result.t
 
@@ -51,7 +54,7 @@ module type Bucket = sig
   val max : 'e. t -> ((key * value) Option.t, 'e) Result.t
 
   (** [min bucket] returns the smallest key-value pair in the bucket. *)
-  val min : 'e. t -> ((key * value) Option.t, 'e) Result.t
+  val min : 'e. t -> ((key * value) Option.t, 'e) Result.t *)
 end
 
 module type Interface = sig

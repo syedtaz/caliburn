@@ -5,6 +5,7 @@
   <br/>
   <a href="https://syedtaz.github.io/doc-caliburn/caliburn/Caliburn/index.html"><img src="https://img.shields.io/badge/doc-online-blue.svg?style=flat-square" alt="documentation"></img></a>
   <img src="https://img.shields.io/github/license/syedtaz/caliburn" alt="license-bsd">
+  <img src="https://img.shields.io/github/v/release/syedtaz/caliburn" alt="release">
   </div>
   <a href="https://www.flaticon.com/free-icons/legend" title="legend icons">art by surang from Flaticon</a>
 </div>

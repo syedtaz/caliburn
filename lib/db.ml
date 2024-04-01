@@ -8,6 +8,8 @@ struct
   type t = Core_unix.File_descr.t
   type errors = [ `Cannot_determine ]
 
+  module Bucket = Bucket.Make (S)
+
   let string_of_errors = function
     | `Cannot_determine -> "Cannot determine"
 
