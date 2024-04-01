@@ -17,7 +17,7 @@ module type DB = sig
   type t
   type errors
 
-  module Bucket : Bucket_intf.Bucket
+  module Bucket : Bucket_intf.Bucket with type key = key and type value = value
 
   val string_of_errors : errors -> string
 
