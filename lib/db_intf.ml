@@ -15,10 +15,14 @@ module type DB = sig
   type key
   type value
   type t
+  type errors [@@deriving sexp]
 
   (** [open_db] loads the database stored at the path into memory if it exists
       or creates a database at that directory and initializes a fresh instance.*)
-  val open_db : string -> t
+  val open_db : string -> (t, errors) Result.t
+
+  (** [close_db] closes the database and flushes any pending writes. *)
+  val close_db : t -> unit
 end
 
 module type Interface = sig

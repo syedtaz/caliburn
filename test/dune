@@ -1,6 +1,6 @@
-(test
- (name test_lsm)
- (libraries caliburn)
- (preprocess (pps ppx_jane ppx_let ppx_expect ppx_assert)))
-
+(library
+ (name test_caliburn)
+ (libraries caliburn core)
+ (inline_tests)
+ (preprocess (pps ppx_jane ppx_let ppx_expect ppx_assert ppx_expect)))
  (env (dev (flags (:standard -w -32))))
