@@ -1,1 +1,1 @@
-include Db_intf.Interface
+include Db_intf.Interface (** @inline *)

@@ -32,3 +32,4 @@ taskell.md
 *.log
 debug.plist
 references/*
+theme/*
