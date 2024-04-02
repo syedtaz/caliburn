@@ -15,19 +15,19 @@ struct
     | `Insert (key, data) ->
       let prev = Hashtbl.find bucket key in
       Hashtbl.add_exn bucket ~key ~data;
-      Ok prev, bucket
-    | `Get key -> Ok (Hashtbl.find bucket key), bucket
+      prev, bucket
+    | `Get key -> (Hashtbl.find bucket key), bucket
     | `Delete key ->
       let prev = Hashtbl.find bucket key in
       Hashtbl.remove bucket key;
-      Ok prev, bucket
+      prev, bucket
     | `FetchUpdate (key, f) ->
       Hashtbl.update bucket key ~f;
-      Ok (Hashtbl.find bucket key), bucket
+      (Hashtbl.find bucket key), bucket
     | `UpdateFetch (key, f) ->
       let res = Hashtbl.find bucket key in
       Hashtbl.update bucket key ~f;
-      Ok res, bucket
+      res, bucket
   ;;
 
   let machine : (event', response', state) Kernel.Mealy.t =

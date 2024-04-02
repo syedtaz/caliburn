@@ -8,7 +8,7 @@ type ('key, 'value) event =
   | `FetchUpdate of 'key * ('value Option.t -> 'value)
   ]
 
-type 'value response = ('value Option.t, Errors.t) Result.t
+type 'value response = 'value Option.t
 
 module type Store = sig
   type key

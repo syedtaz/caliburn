@@ -35,7 +35,7 @@ struct
   let ( >>/ ) (db : opened t) event =
     let res, ns = db.store.action event in
     db.store <- ns;
-    res, db
+    Ok (res, db)
   ;;
 
   let get db key = db >>/ `Get key

@@ -27,7 +27,7 @@ module type DB = sig
 
   (** [get db k] returns the value of [k] if it was set and the updated handler
       to the database. *)
-  val get : opened t -> key -> (value Option.t, Errors.t) Result.t * opened t
+  val get : opened t -> key -> (value Option.t * opened t, Errors.t) Result.t
 
   (** [insert db k v] binds [v] to [k] in the database and returns
       the previous binding if it was set alongside the updated handler
@@ -36,11 +36,11 @@ module type DB = sig
     :  opened t
     -> key:key
     -> value:value
-    -> (value Option.t, Errors.t) Result.t * opened t
+    -> (value Option.t * opened t, Errors.t) Result.t
 
   (** [delete db k] removes [k] from the database and returns the previous
       binding if it was set alongside the updated handler to the database. *)
-  val delete : opened t -> key -> (value Option.t, Errors.t) Result.t * opened t
+  val delete : opened t -> key -> (value Option.t * opened t, Errors.t) Result.t
 
   (** [update_fetch bucket k f] checks if the binding for [k] exists, applies
       [f] to the binding and returns the new value. *)
@@ -48,7 +48,7 @@ module type DB = sig
     :  opened t
     -> key
     -> f:(value Option.t -> value)
-    -> (value Option.t, Errors.t) Result.t * opened t
+    -> (value Option.t * opened t, Errors.t) Result.t
 
   (** [fetch_update bucket k f] checks if the binding for [k] exists, applies
       [f] to the binding and returns the old value. *)
@@ -56,7 +56,7 @@ module type DB = sig
     :  opened t
     -> key
     -> f:(value Option.t -> value)
-    -> (value Option.t, Errors.t) Result.t * opened t
+    -> (value Option.t * opened t, Errors.t) Result.t
 end
 
 module type Interface = sig
