@@ -1,12 +1,10 @@
 open Core
-
 include Bucket_intf
 
 (* TODO! CHANGE THIS TO FD TREE ASAP *)
 
 module Make (S : Serializable) : Bucket with type key = S.key and type value = S.value =
 struct
-
   type key = S.key
   type value = S.value
   type t = (key, value) Hashtbl.t
@@ -35,5 +33,18 @@ struct
     let prev = Hashtbl.find bucket key in
     Hashtbl.remove bucket key;
     Ok prev
+  ;;
+
+  let mem key : (bool, error) Result.t = Ok (Hashtbl.mem bucket key)
+
+  let update_fetch key ~f : (value Option.t, error) Result.t =
+    Hashtbl.update bucket key ~f;
+    Ok (Hashtbl.find bucket key)
+  ;;
+
+  let fetch_update key ~f : (value Option.t, error) Result.t =
+    let res = Hashtbl.find bucket key in
+    Hashtbl.update bucket key ~f;
+    Ok res
   ;;
 end
