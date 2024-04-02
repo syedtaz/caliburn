@@ -1,8 +1,9 @@
 open Core
 include Db_intf
 
-(*  : DB with type key = S.key and type value = S.value *)
-module Make (S : Serializable) = struct
+(* : DB with type key = S.key and type value = S.value *)
+module Make (S : Serializable) : DB with type key = S.key and type value = S.value =
+struct
   type key = S.key
   type value = S.value
 
@@ -31,15 +32,15 @@ module Make (S : Serializable) = struct
     { fd; store }
   ;;
 
-  let ( >>| ) (db : opened t) event =
+  let ( >>/ ) (db : opened t) event =
     let res, ns = db.store.action event in
     db.store <- ns;
     res, db
   ;;
 
-  let get db key = db >>| `Get key
-  let insert db ~key ~value = db >>| `Insert (key, value)
-  let delete db key = db >>| `Delete key
-  let update_fetch db key ~f = db >>| `UpdateFetch (key, f)
-  let fetch_update db key ~f = db >>| `FetchUpdate (key, f)
+  let get db key = db >>/ `Get key
+  let insert db ~key ~value = db >>/ `Insert (key, value)
+  let delete db key = db >>/ `Delete key
+  let update_fetch db key ~f = db >>/ `UpdateFetch (key, f)
+  let fetch_update db key ~f = db >>/ `FetchUpdate (key, f)
 end

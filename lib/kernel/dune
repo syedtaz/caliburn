@@ -1,5 +1,5 @@
 (library
- (public_name caliburn.kernel)
+ (package caliburn)
  (name kernel)
  (libraries core async integers)
  (inline_tests)

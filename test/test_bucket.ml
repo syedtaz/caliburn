@@ -2,19 +2,13 @@ open Caliburn
 open! Core
 
 module S = struct
-  open Core
-
   type key = int [@@deriving bin_io, hash, sexp, compare]
   type value = string [@@deriving bin_io, hash, sexp, compare]
 end
 
 module Int_DB = Db.Make (S)
 
-let db =
-  match Int_DB.open_db "./some/file" with
-  | Ok t -> t
-  | Error _ -> failwith "cannot load DB"
-;;
+let db = Int_DB.open_db "./some/file" |> Stdlib.Result.get_ok
 
 type ret = (string Option.t, Errors.t) Result.t
 
@@ -27,6 +21,19 @@ let%expect_test _ =
   | Error _ ->
     Format.printf "Error occurred.";
   [%expect {| could not find value |}]
+;;
+
+let%expect_test _ =
+  let res, db' = Int_DB.insert db ~key:1912 ~value:"Titanic sinks!" in
+  match res with
+  | Ok _ ->
+    let res', _ = Int_DB.get db' 1912 in
+    (match res' with
+     | Ok (Some v) -> Format.printf "we found the value : %s" v
+     | Ok None -> Format.print_string "we couldn't find a value?"
+     | Error _ -> Format.printf "could not get!")
+  | Error _ -> Format.printf "could not insert!";
+  [%expect {| we found the value : Titanic sinks! |}]
 ;;
 
 (* let%expect_test _ =

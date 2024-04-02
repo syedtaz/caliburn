@@ -1,6 +1,7 @@
 open Core
 include Store_intf
 
+
 module Make (S : Serializable) : Store with type key = S.key and type value = S.value =
 struct
   type key = S.key

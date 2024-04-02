@@ -30,21 +30,33 @@ $ opam pin caliburn https://github.com/syedtaz/caliburn.git#main
 ## Quickstart
 
 First, you need to open or create a database. After that, you can insert,
-delete or get key-values at your discretion. If you don't specify the type
-of the key-value store, it will default to a database that deals with
-pure byte chunks.
-
-Ideal API:
+delete or get key-values at your discretion.
 
 ```ocaml
 open Caliburn
 
-let db = DB.open "/path/to/database" |> Result.get_ok in
-let k = Bytes.of_string "some_key"
-and v = Bytes.of_string "some_value" in
-match DB.insert db ~key:k ~value:v with
-  | Ok _ -> Format.print_string "Success!"
-  | Err _ -> Format.print_string "Something went wrong. :<"
+(* Let's say we want to store a mapping between [id]s and [name]s. *)
+
+(*  A module that represents the type of the key-value pairs we will
+    parameterize the database over. *)
+module KVType = struct
+  type key = int [@@deriving bin_io, hash, sexp, compare]
+  type value = string [@@deriving bin_io, hash, sexp, compare]
+end
+
+(*  A module for handling [int, string] stores. *)
+module Id_db = DB.Make (KVType)
+
+(* Insert a key and check that it's there :) *)
+let res, db' = Int_DB.insert db ~key:1912 ~value:"Titanic sinks!" in
+match res with
+| Ok _ ->
+  let res', db'' = Int_DB.get db' 1912 in
+  (match res' with
+    | Ok (Some v) -> Format.printf "we found the value : %s" v; db''
+    | Ok None -> Format.print_string "we couldn't find a value?"; db''
+    | Error _ -> Format.printf "could not get!"; db')
+| Error _ -> Format.printf "could not insert!"; db
 ```
 
 ----
