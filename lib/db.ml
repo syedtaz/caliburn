@@ -1,19 +1,20 @@
 open Core
 include Db_intf
 
-module Make (S : Serializable)  : DB with type key = S.key and type value = S.value = struct
+(*  : DB with type key = S.key and type value = S.value *)
+module Make (S : Serializable) = struct
   type key = S.key
   type value = S.value
 
   module Store = Store.Make (S)
 
-  type t =
+  type 'a t =
     { fd : Core_unix.File_descr.t
     ; mutable store :
         ((key, value) Store_intf.event, value Store_intf.response) Kernel.Mealy.s
     }
 
-  let open_db path =
+  let open_db path : (opened t, [> `Cannot_determine ]) result =
     let store = Kernel.Mealy.unfold Store.machine in
     match Sys_unix.file_exists ~follow_symlinks:true path with
     | `Unknown -> Error `Cannot_determine
@@ -24,10 +25,21 @@ module Make (S : Serializable)  : DB with type key = S.key and type value = S.va
       Ok { fd = Core_unix.openfile ~mode:[ O_CREAT; O_RDWR ] path; store }
   ;;
 
-  let close_db db = Core_unix.close db.fd
+  let close_db (db : opened t) : closed t =
+    let { fd; store } = db in
+    Core_unix.close fd;
+    { fd; store }
+  ;;
 
-  let get db key =
-     let (res, ns) = db.store.action (`Get key) in
-     db.store <- ns;
-     res
+  let ( >>| ) (db : opened t) event =
+    let res, ns = db.store.action event in
+    db.store <- ns;
+    res, db
+  ;;
+
+  let get db key = db >>| `Get key
+  let insert db ~key ~value = db >>| `Insert (key, value)
+  let delete db key = db >>| `Delete key
+  let update_fetch db key ~f = db >>| `UpdateFetch (key, f)
+  let fetch_update db key ~f = db >>| `FetchUpdate (key, f)
 end

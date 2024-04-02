@@ -3,6 +3,9 @@ module type Serializable = Kernel.Common.Serializable
 type ('key, 'value) event =
   [ `Insert of 'key * 'value
   | `Get of 'key
+  | `Delete of 'key
+  | `UpdateFetch of 'key * ('value Option.t -> 'value)
+  | `FetchUpdate of 'key * ('value Option.t -> 'value)
   ]
 
 type 'value response = ('value Option.t, Errors.t) Result.t

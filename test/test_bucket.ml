@@ -19,7 +19,7 @@ let db =
 type ret = (string Option.t, Errors.t) Result.t
 
 let%expect_test _ =
-  let res = Int_DB.get db 10 in
+  let res, _ = Int_DB.get db 10 in
   match res with
   | Ok v ->
     Option.value_map v ~default:(Format.print_string "could not find value") ~f:(fun x ->
