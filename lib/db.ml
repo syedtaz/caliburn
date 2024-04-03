@@ -7,12 +7,12 @@ struct
   type key = S.key
   type value = S.value
 
-  module Store = Store.Make (S)
+  module Store = Machine.Store.Make (S)
 
   type t =
     { fd : Core_unix.File_descr.t
     ; mutable store :
-        ((key, value) Store_intf.event, value Store_intf.response) Kernel.Mealy.s
+        ((key, value) Machine.Store_intf.event, value Machine.Store_intf.response) Kernel.Mealy.s
     }
 
   let open_db path : (t, [> `Cannot_determine ]) result =
