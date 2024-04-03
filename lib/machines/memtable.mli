@@ -1,0 +1,1 @@
+include Memtable_intf.Interface (** @inline *)

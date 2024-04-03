@@ -1,1 +1,0 @@
-include Store_intf.Interface (** @inline *)

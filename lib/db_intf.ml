@@ -1,3 +1,5 @@
+open Core
+
 module type Serializable = Kernel.Common.Serializable
 
 module type DB = sig

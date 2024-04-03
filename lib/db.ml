@@ -1,22 +1,22 @@
 open Core
 include Db_intf
 
-(* : DB with type key = S.key and type value = S.value *)
 module Make (S : Serializable) : DB with type key = S.key and type value = S.value =
 struct
+
   type key = S.key
   type value = S.value
 
-  module Store = Machine.Store.Make (S)
+  module Memtable = Machine.Memtable.Make (S)
 
   type t =
     { fd : Core_unix.File_descr.t
     ; mutable store :
-        ((key, value) Machine.Store_intf.event, value Machine.Store_intf.response) Kernel.Mealy.s
+        ((key, value) Machine.Memtable_intf.event, value Machine.Memtable_intf.response) Kernel.Mealy.s
     }
 
   let open_db path : (t, [> `Cannot_determine ]) result =
-    let store = Kernel.Mealy.unfold Store.machine in
+    let store = Kernel.Mealy.unfold Memtable.machine in
     match Sys_unix.file_exists ~follow_symlinks:true path with
     | `Unknown -> Error `Cannot_determine
     | `Yes -> Ok { fd = Core_unix.openfile ~mode:[ O_RDWR ] path; store }
