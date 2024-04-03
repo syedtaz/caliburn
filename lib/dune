@@ -4,3 +4,4 @@
  (libraries core async kernel)
  (inline_tests)
  (preprocess (pps ppx_jane ppx_let ppx_sexp_conv ppx_expect ppx_inline_test)))
+ (env (dev (flags (:standard -w -69))))

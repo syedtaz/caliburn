@@ -15,7 +15,7 @@ type ret = (string Option.t, Errors.t) Result.t
 let%expect_test _ =
   let open Result.Let_syntax in
   ignore
-    (let%bind res, _ = Int_DB.get db 10 in
+    (let%bind res = Int_DB.get db 10 in
      return
        (Option.value_map
           res
@@ -27,11 +27,11 @@ let%expect_test _ =
 let%expect_test _ =
   let open Result.Let_syntax in
   ignore
-    (let%bind _, db' = Int_DB.insert db ~key:1912 ~value:"Titanic sinks!" in
-     let%bind res', db'' = Int_DB.get db' 1912 in
-     (match res' with
+    (let%bind _ = Int_DB.insert db ~key:1912 ~value:"Titanic sinks!" in
+     let%bind res = Int_DB.get db 1912 in
+     (match res with
       | Some v -> Format.printf "we found the value : %s" v
       | None -> Format.print_string "we couldn't find a value?");
-     return db'');
+     return ());
   [%expect {| we found the value : Titanic sinks! |}]
 ;;

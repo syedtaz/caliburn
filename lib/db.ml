@@ -9,13 +9,13 @@ struct
 
   module Store = Store.Make (S)
 
-  type 'a t =
+  type t =
     { fd : Core_unix.File_descr.t
     ; mutable store :
         ((key, value) Store_intf.event, value Store_intf.response) Kernel.Mealy.s
     }
 
-  let open_db path : (opened t, [> `Cannot_determine ]) result =
+  let open_db path : (t, [> `Cannot_determine ]) result =
     let store = Kernel.Mealy.unfold Store.machine in
     match Sys_unix.file_exists ~follow_symlinks:true path with
     | `Unknown -> Error `Cannot_determine
@@ -26,16 +26,10 @@ struct
       Ok { fd = Core_unix.openfile ~mode:[ O_CREAT; O_RDWR ] path; store }
   ;;
 
-  let close_db (db : opened t) : closed t =
-    let { fd; store } = db in
-    Core_unix.close fd;
-    { fd; store }
-  ;;
-
-  let ( >>/ ) (db : opened t) event =
+  let ( >>/ ) (db : t) event =
     let res, ns = db.store.action event in
     db.store <- ns;
-    Ok (res, db)
+    Ok res
   ;;
 
   let get db key = db >>/ `Get key
