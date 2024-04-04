@@ -1,6 +1,6 @@
 (library
- (package caliburn)
- (name kernel)
- (libraries core async integers signatures)
+ (public_name caliburn.signatures)
+ (name signatures)
+ (libraries core async)
  (inline_tests)
  (preprocess (pps ppx_jane ppx_let ppx_sexp_conv ppx_expect ppx_inline_test)))

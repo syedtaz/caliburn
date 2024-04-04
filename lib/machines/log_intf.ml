@@ -8,17 +8,21 @@ type ('key, 'value) event =
   | `FetchUpdate of 'key * ('value Option.t -> 'value)
   ]
 
-type 'value response = 'value Option.t
+type response =
+  [ `Persisted
+  | `Failed
+  | `Passed
+  ]
 
-module type Memtable = sig
+module type Log = sig
   type key
   type value
   type state
 
-  val machine : ((key, value) event, value response, state) Kernel.Mealy.t
+  val machine : string -> ((key, value) event, response, state) Kernel.Mealy.t
 end
 
 module type Interface = sig
   module Make : functor (S : Serializable) ->
-    Memtable with type key = S.key and type value = S.value
+    Log with type key = S.key and type value = S.value
 end

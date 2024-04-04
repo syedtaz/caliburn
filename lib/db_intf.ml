@@ -1,6 +1,6 @@
 open Core
 
-module type Serializable = Kernel.Common.Serializable
+module type Serializable = Signatures.Common.Serializable
 
 module type DB = sig
   (** A [DB] is the module used to interact with a data store that is

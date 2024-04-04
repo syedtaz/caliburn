@@ -1,6 +1,6 @@
 open Core
 
-module Make (S : Common.Serializable) = struct
+module Make (S : Signatures.Common.Serializable) = struct
   open Bin_prot
 
   let position = ref 0

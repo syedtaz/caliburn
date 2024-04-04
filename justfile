@@ -11,3 +11,4 @@ alias dc := doc-commit
 	cp -rf _build/default/_doc/_html/* doc-caliburn
 	yes | cp -rf theme/* doc-caliburn/odoc.support
 	git rev-parse HEAD > doc-caliburn/.commit
+	cd doc-caliburn && git add . && git commit -F .commit && git push

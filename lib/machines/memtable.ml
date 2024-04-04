@@ -2,7 +2,7 @@ open Core
 include Memtable_intf
 
 
-module Make (S : Serializable) : Store with type key = S.key and type value = S.value =
+module Make (S : Serializable) : Memtable with type key = S.key and type value = S.value =
 struct
   type key = S.key
   type value = S.value

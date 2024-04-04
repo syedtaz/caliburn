@@ -1,3 +1,5 @@
+open Core
+
 module type Sig = sig
   type key
   type value
@@ -17,6 +19,7 @@ module type Serializable = sig
   val bin_write_key : key Bin_prot.Write.writer
   val bin_write_value : value Bin_prot.Write.writer
   val bin_size_key : key Bin_prot.Size.sizer
+  val bin_size_value : value Bin_prot.Size.sizer
 end
 
 module S = struct

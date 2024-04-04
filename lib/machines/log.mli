@@ -1,0 +1,1 @@
+include Log_intf.Interface (** @inline *)
