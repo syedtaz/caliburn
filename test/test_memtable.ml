@@ -26,12 +26,13 @@ let%expect_test _ =
 
 let%expect_test _ =
   let open Result.Let_syntax in
-  ignore
-    (let%bind _ = Int_DB.insert db ~key:1912 ~value:"Titanic sinks!" in
-     let%bind res = Int_DB.get db 1912 in
-     (match res with
-      | Some v -> Format.printf "we found the value : %s" v
-      | None -> Format.print_string "we couldn't find a value?");
-     return ());
+  let _ =
+    let%bind _ = Int_DB.insert db ~key:1912 ~value:"Titanic sinks!" in
+    let%bind res = Int_DB.get db 1912 in
+    match res with
+    | Some v -> return (Format.printf "we found the value : %s" v)
+    | None -> return (Format.print_string "we couldn't find a value?")
+  in
+  ();
   [%expect {| we found the value : Titanic sinks! |}]
 ;;

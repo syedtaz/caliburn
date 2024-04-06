@@ -1,0 +1,1 @@
+include Bootstrap_intf.Interface (** @inline *)

@@ -29,36 +29,38 @@ $ opam pin caliburn https://github.com/syedtaz/caliburn.git#main
 
 ## Quickstart
 
-First, you need to open or create a database. After that, you can insert,
-delete or get key-values at your discretion.
+Let's say we want to store a mapping between integers and strings. So we need a
+module that represents the type of the key-value pairs we will
+parameterize the database over which we will pass into the Make functor.
+This gives us a module for handling id -> name "databases".
 
 ```ocaml
 open Caliburn
 
-(* Let's say we want to store a mapping between [id]s and [name]s. *)
+module Id_db = DB.Make (struct
+  type key = int [@@deriving bin_io, compare]
+  type value = string [@@deriving bin_io, compare]
+end)
+```
 
-(*  A module that represents the type of the key-value pairs we will
-    parameterize the database over. *)
-module KVType = struct
-  type key = int [@@deriving bin_io, hash, sexp, compare]
-  type value = string [@@deriving bin_io, hash, sexp, compare]
-end
+This module can we used to interact with any int-string database. So let's create
+one! After that, you can insert, delete or get key-values at your discretion.
+You need to remember to close the DB connection once you're done -- otherwise
+the file handlers won't be cleaned up.
 
-(*  A module for handling [int, string] stores. *)
-module Id_db = DB.Make (KVType)
-
-(* Insert a key and check that it's there :) *)
+```ocaml
 let%expect_test _ =
-let db = Id_db.open_db "some/database" in
-[%defer Id_db.close db];
-let open Result.Let_syntax in
-ignore
-  (let%bind _ = Id_db.insert db ~key:1912 ~value:"Titanic sinks!" in
-    let%bind res = Id_db.get db 1912 in
-    (match res with
-    | Some v -> Format.printf "we found the value : %s" v
-    | None -> Format.print_string "we couldn't find a value?");
-    return ());
+  let db = Id_db.open_db "some/database" in
+  [%defer Id_db.close db];
+  let open Result.Let_syntax in
+  let _ =
+    let%bind _ = Int_DB.insert db ~key:1912 ~value:"Titanic sinks!" in
+    let%bind res = Int_DB.get db 1912 in
+    match res with
+    | Some v -> return (Format.printf "we found the value : %s" v)
+    | None -> return (Format.print_string "we couldn't find a value?")
+  in
+  ();
 [%expect {| we found the value : Titanic sinks! |}]
 ```
 

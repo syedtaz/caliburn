@@ -1,6 +1,6 @@
 (library
  (package caliburn)
  (name machine)
- (libraries core kernel signatures)
+ (libraries core core_kernel kernel signatures)
  (inline_tests)
  (preprocess (pps ppx_jane ppx_let ppx_sexp_conv ppx_expect ppx_inline_test)))
