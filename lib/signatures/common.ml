@@ -20,6 +20,8 @@ module type Serializable = sig
   val bin_write_value : value Bin_prot.Write.writer
   val bin_size_key : key Bin_prot.Size.sizer
   val bin_size_value : value Bin_prot.Size.sizer
+  val bin_read_key : key Bin_prot.Read.reader
+  val bin_read_value : value Bin_prot.Read.reader
 end
 
 module S = struct

@@ -8,26 +8,26 @@ struct
   type value = S.value
   type state = (key, value) Hashtbl.t
   type event' = (key, value) event
-  type response' = value response
+  type response' = (key, value) response
 
   let handler (bucket : state) (event : event') : response' * state =
     match event with
     | `Insert (key, data) ->
       let prev = Hashtbl.find bucket key in
       Hashtbl.add_exn bucket ~key ~data;
-      prev, bucket
-    | `Get key -> (Hashtbl.find bucket key), bucket
+      `Insert (key, prev), bucket
+    | `Get key -> `PassedV (Hashtbl.find bucket key), bucket
     | `Delete key ->
       let prev = Hashtbl.find bucket key in
       Hashtbl.remove bucket key;
-      prev, bucket
+      `Delete (key, prev), bucket
     | `FetchUpdate (key, f) ->
       Hashtbl.update bucket key ~f;
-      (Hashtbl.find bucket key), bucket
+      `Insert (key, (Hashtbl.find bucket key)), bucket
     | `UpdateFetch (key, f) ->
       let res = Hashtbl.find bucket key in
       Hashtbl.update bucket key ~f;
-      res, bucket
+      `PassedV res, bucket
   ;;
 
   let machine : (event', response', state) Kernel.Mealy.t =

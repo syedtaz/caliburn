@@ -8,14 +8,14 @@ type ('key, 'value) event =
   | `FetchUpdate of 'key * ('value Option.t -> 'value)
   ]
 
-type 'value response = 'value Option.t
+type ('key, 'value) response = ('key, 'value) Log_intf.event
 
 module type Memtable = sig
   type key
   type value
   type state
 
-  val machine : ((key, value) event, value response, state) Kernel.Mealy.t
+  val machine : ((key, value) event, (key, value) response, state) Kernel.Mealy.t
 end
 
 module type Interface = sig

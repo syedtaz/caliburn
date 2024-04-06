@@ -1,25 +1,28 @@
+open Core
+
 module type Serializable = Signatures.Common.Serializable
 
 type ('key, 'value) event =
-  [ `Insert of 'key * 'value
-  | `Get of 'key
-  | `Delete of 'key
-  | `UpdateFetch of 'key * ('value Option.t -> 'value)
-  | `FetchUpdate of 'key * ('value Option.t -> 'value)
+  [ `Insert of 'key * 'value Option.t
+  | `Delete of 'key * 'value Option.t
+  | `PassedK of 'key Option.t
+  | `PassedV of 'value Option.t
   ]
+[@@deriving bin_io]
 
-type response =
-  [ `Persisted
-  | `Failed
-  | `Passed
-  ]
+type ('key, 'value) response =
+  | SuccessKey : 'key Option.t -> ('key, _) response
+  | SuccessValue : 'value Option.t -> (_, 'value) response
+  | Failed : (_, _) response
 
 module type Log = sig
   type key
   type value
   type state
 
-  val machine : string -> ((key, value) event, response, state) Kernel.Mealy.t
+  val machine
+    :  string
+    -> ((key, value) event, (key, value) response, state) Kernel.Mealy.t
 end
 
 module type Interface = sig

@@ -1,42 +1,6 @@
 open Core
 include Log_intf
 
-module Serializer (S : Serializable) = struct
-  let bin_buffer = Bin_prot.Common.create_buf 2000
-  let byte_buffer = Bytes.create 2000
-
-  let write_size key value =
-    let ksize = S.bin_size_key key in
-    let vsize = S.bin_size_value value in
-    let next =
-      Bin_prot.Write.bin_write_nat0 bin_buffer (Bin_prot.Nat0.of_int ksize) ~pos:0
-    in
-    let final =
-      Bin_prot.Write.bin_write_nat0 bin_buffer (Bin_prot.Nat0.of_int vsize) ~pos:next
-    in
-    final
-  [@@inline always]
-  ;;
-
-  let write_kv_buffer key value =
-    let start = write_size key value in
-    let next = S.bin_write_key bin_buffer key ~pos:start in
-    let final = S.bin_write_value bin_buffer value ~pos:next in
-    final
-  ;;
-
-  let serialize fd key value =
-    let fpos = write_kv_buffer key value in
-    Bin_prot.Common.blit_buf_bytes ~src_pos:0 ~len:fpos bin_buffer byte_buffer ~dst_pos:0;
-    let written = Core_unix.single_write ~pos:0 ~len:fpos ~buf:byte_buffer fd in
-    match Int.equal written fpos with
-    | true ->
-      Core_unix.fsync fd;
-      `Persisted
-    | false -> `Failed
-  ;;
-end
-
 module Make (S : Serializable) : Log with type key = S.key and type value = S.value =
 struct
   type key = S.key
@@ -44,13 +8,44 @@ struct
   type state = { mutable fd : Core_unix.File_descr.t }
   type event' = (key, value) event
 
-  module Serializer = Serializer (S)
+  module Serializer = struct
+    open Bin_prot
 
-  let handler (state : state) (event : event') : response * state =
-    match event with
-    | `Insert (key, value) -> Serializer.serialize state.fd key value, state
-    | `Get _ -> `Passed, state
-    | `UpdateFetch _ | `Delete _ | `FetchUpdate _ -> `Persisted, state
+    let bin_buffer = Common.create_buf 2000
+    let byte_buffer = Bytes.create 2000
+
+    let persist fd e =
+      let fpos = bin_write_event S.bin_write_key S.bin_write_value bin_buffer e ~pos:0 in
+      Bin_prot.Common.blit_buf_bytes
+        ~src_pos:0
+        ~len:fpos
+        bin_buffer
+        byte_buffer
+        ~dst_pos:0;
+      let written = Core_unix.single_write ~pos:0 ~len:fpos ~buf:byte_buffer fd in
+      written = fpos
+    ;;
+
+    let write fd (e : event') : (S.key, S.value) response =
+      match e with
+      | `PassedK x -> SuccessKey x
+      | `PassedV x -> SuccessValue x
+      | `Delete (_, v) ->
+        (match v with
+         | None -> Failed
+         | Some _ ->
+           (match persist fd e with
+            | true -> SuccessValue v
+            | false -> Failed))
+      | `Insert (_, x) ->
+        (match persist fd e with
+         | true -> SuccessValue x
+         | false -> Failed)
+    ;;
+  end
+
+  let handler (state : state) (event : event') : (key, value) response * state =
+    Serializer.write state.fd event, state
   ;;
 
   let open_or_create path =
@@ -62,7 +57,7 @@ struct
       Core_unix.openfile ~mode:[ O_CREAT; O_RDWR ] path
   ;;
 
-  let machine (path : string) : (event', response, state) Kernel.Mealy.t =
+  let machine (path : string) : (event', (key, value) response, state) Kernel.Mealy.t =
     { initial = { fd = open_or_create (path ^ ".log") }; action = handler }
   ;;
 end
