@@ -21,6 +21,13 @@ module type DB = sig
       or creates a database at that directory and initializes a fresh instance.*)
   val open_db : string -> (t, Errors.t) Result.t
 
+  (** [close_db] syncs and cleans up the internal state of the database handler.
+      It is important that you run this function otherwise you will not close
+      the underlying file descriptors.
+
+      Personally, I would suggest using ppx_defer.*)
+  val close_db : t -> unit
+
   (** [get db k] returns the value of [k] if it was set and the updated handler
       to the database. *)
   val get : t -> key -> (value Option.t, Errors.t) Result.t

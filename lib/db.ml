@@ -31,6 +31,8 @@ struct
       Ok { fd = Core_unix.openfile ~mode:[ O_CREAT; O_RDWR ] path; store; log }
   ;;
 
+  let close_db (db : t) : unit = Core_unix.close db.fd
+
   let ( >>/ ) (db : t) event =
     let res, ns = db.store.action event in
     let _, ns' = db.log.action event in

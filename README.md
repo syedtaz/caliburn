@@ -49,10 +49,12 @@ module Id_db = DB.Make (KVType)
 
 (* Insert a key and check that it's there :) *)
 let%expect_test _ =
+let db = Id_db.open_db "some/database" in
+[%defer Id_db.close db];
 let open Result.Let_syntax in
 ignore
-  (let%bind _ = Int_DB.insert db ~key:1912 ~value:"Titanic sinks!" in
-    let%bind res = Int_DB.get db 1912 in
+  (let%bind _ = Id_db.insert db ~key:1912 ~value:"Titanic sinks!" in
+    let%bind res = Id_db.get db 1912 in
     (match res with
     | Some v -> Format.printf "we found the value : %s" v
     | None -> Format.print_string "we couldn't find a value?");
