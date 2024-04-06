@@ -14,8 +14,8 @@ struct
     let bin_buffer = Common.create_buf 2000
     let byte_buffer = Bytes.create 2000
 
-    let persist fd e =
-      let fpos = bin_write_event S.bin_write_key S.bin_write_value bin_buffer e ~pos:0 in
+    let persist fd (e : ('key, 'value) logmsg) =
+      let fpos = bin_write_logmsg S.bin_write_key S.bin_write_value bin_buffer e ~pos:0 in
       Bin_prot.Common.blit_buf_bytes
         ~src_pos:0
         ~len:fpos
@@ -28,18 +28,15 @@ struct
 
     let write fd (e : event') : (S.key, S.value) response =
       match e with
-      | `PassedK x -> SuccessKey x
-      | `PassedV x -> SuccessValue x
-      | `Delete (_, v) ->
-        (match v with
-         | None -> Failed
-         | Some _ ->
-           (match persist fd e with
-            | true -> SuccessValue v
-            | false -> Failed))
-      | `Insert (_, x) ->
-        (match persist fd e with
-         | true -> SuccessValue x
+      | PassedK x -> SuccessKey x
+      | PassedV x -> SuccessValue x
+      | Delete (k, ret) ->
+        (match persist fd (`Delete k) with
+         | true -> SuccessValue ret
+         | false -> Failed)
+      | Insert (k, v, ret) ->
+        (match persist fd (`Insert (k, v)) with
+         | true -> SuccessValue ret
          | false -> Failed)
     ;;
   end

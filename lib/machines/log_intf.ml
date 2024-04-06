@@ -3,10 +3,14 @@ open Core
 module type Serializable = Signatures.Common.Serializable
 
 type ('key, 'value) event =
-  [ `Insert of 'key * 'value Option.t
-  | `Delete of 'key * 'value Option.t
-  | `PassedK of 'key Option.t
-  | `PassedV of 'value Option.t
+  | PassedK : 'key Option.t -> ('key, _) event
+  | PassedV : 'value Option.t -> (_, 'value) event
+  | Delete : 'key * 'value Option.t -> ('key, 'value) event
+  | Insert : 'key * 'value * 'value Option.t -> ('key, 'value) event
+
+type ('key, 'value) logmsg =
+  [ `Insert of 'key * 'value
+  | `Delete of 'key
   ]
 [@@deriving bin_io]
 

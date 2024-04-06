@@ -1,7 +1,6 @@
 open Core
 include Memtable_intf
 
-
 module Make (S : Serializable) : Memtable with type key = S.key and type value = S.value =
 struct
   type key = S.key
@@ -15,19 +14,23 @@ struct
     | `Insert (key, data) ->
       let prev = Hashtbl.find bucket key in
       Hashtbl.add_exn bucket ~key ~data;
-      `Insert (key, prev), bucket
-    | `Get key -> `PassedV (Hashtbl.find bucket key), bucket
+      Insert (key, data, prev), bucket
+    | `Get key -> PassedV (Hashtbl.find bucket key), bucket
     | `Delete key ->
       let prev = Hashtbl.find bucket key in
       Hashtbl.remove bucket key;
-      `Delete (key, prev), bucket
-    | `FetchUpdate (key, f) ->
-      Hashtbl.update bucket key ~f;
-      `Insert (key, (Hashtbl.find bucket key)), bucket
+      Delete (key, prev), bucket
     | `UpdateFetch (key, f) ->
+      Hashtbl.update bucket key ~f;
+      (match Hashtbl.find bucket key with
+       | Some v as ret -> Insert (key, v, ret), bucket
+       | None -> PassedV None, bucket)
+    | `FetchUpdate (key, f) ->
       let res = Hashtbl.find bucket key in
       Hashtbl.update bucket key ~f;
-      `PassedV res, bucket
+      (match res with
+       | Some _ -> Insert (key, Hashtbl.find_exn bucket key, res), bucket
+       | None -> PassedV res, bucket)
   ;;
 
   let machine : (event', response', state) Kernel.Mealy.t =
