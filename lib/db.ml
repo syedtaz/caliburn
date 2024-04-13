@@ -1,13 +1,14 @@
 open Core
 include Db_intf
 
-module Make (S : Serializable) : DB with type key = S.key and type value = S.value  =
+module Make (S : Serializable) : DB with type key = S.key and type value = S.value =
 struct
   type key = S.key
   type value = S.value
 
   module Memtable = Machine.Memtable.Make (S)
   module Log = Machine.Log.Make (S)
+  module Bootstrap = Machine.Bootstrap.Make (S)
 
   type t =
     { fd : Core_unix.File_descr.t
@@ -18,8 +19,12 @@ struct
     }
 
   let open_db path : (t, [> `Cannot_determine ]) result =
+    let msgs : (key, value) Machine.Memtable_intf.event list =
+      Bootstrap.generate_msgs path
+    in
     let machine =
-      Kernel.Mealy.( >>> ) Memtable.machine (Log.machine path) |> Kernel.Mealy.unfold
+      Kernel.Mealy.( >>> ) (Memtable.from_msgs msgs) (Log.machine path)
+      |> Kernel.Mealy.unfold
     in
     match Sys_unix.file_exists ~follow_symlinks:true path with
     | `Unknown -> Error `Cannot_determine
@@ -38,20 +43,33 @@ struct
     res
   ;;
 
+  let get db key =
+    match db >>/ `Get key with
+    | SuccessValue v -> Ok v
+    | _ -> Error `Cannot_determine
+  ;;
 
-  let get db key = match db >>/ `Get key with
+  let insert db ~key ~value =
+    match db >>/ `Insert (key, value) with
     | SuccessValue v -> Ok v
     | _ -> Error `Cannot_determine
-  let insert db ~key ~value = match db >>/ `Insert (key, value) with
+  ;;
+
+  let delete db key =
+    match db >>/ `Delete key with
     | SuccessValue v -> Ok v
     | _ -> Error `Cannot_determine
-  let delete db key = match db >>/ `Delete key with
+  ;;
+
+  let update_fetch db key ~f =
+    match db >>/ `UpdateFetch (key, f) with
     | SuccessValue v -> Ok v
     | _ -> Error `Cannot_determine
-  let update_fetch db key ~f = match db >>/ `UpdateFetch (key, f) with
+  ;;
+
+  let fetch_update db key ~f =
+    match db >>/ `FetchUpdate (key, f) with
     | SuccessValue v -> Ok v
     | _ -> Error `Cannot_determine
-  let fetch_update db key ~f = match db >>/ `FetchUpdate (key, f) with
-    | SuccessValue v -> Ok v
-    | _ -> Error `Cannot_determine
+  ;;
 end

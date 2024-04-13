@@ -1,7 +1,7 @@
 module type Serializable = Signatures.Common.Serializable
 
 type ('key, 'value) event =
-  [ `Insert of 'key * 'value
+  [`Insert of 'key * 'value
   | `Get of 'key
   | `Delete of 'key
   | `UpdateFetch of 'key * ('value Option.t -> 'value)
@@ -16,6 +16,10 @@ module type Memtable = sig
   type state
 
   val machine : ((key, value) event, (key, value) response, state) Kernel.Mealy.t
+
+  val from_msgs
+    :  ((key, value) event) list
+    -> ((key, value) event, (key, value) response, state) Kernel.Mealy.t
 end
 
 module type Interface = sig

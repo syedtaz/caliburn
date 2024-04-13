@@ -1,8 +1,8 @@
 open Core
 include Memtable_intf
 
-module Make (S : Serializable) : Memtable with type key = S.key and type value = S.value =
-struct
+(*  *)
+module Make (S : Serializable) : Memtable with type key = S.key and type value = S.value = struct
   type key = S.key
   type value = S.value
   type state = (key, value) Hashtbl.t
@@ -45,5 +45,16 @@ struct
           end)
     ; action = handler
     }
+  ;;
+
+  let from_msgs events =
+    let initial = machine.initial, machine in
+    let _, m =
+      List.fold_left events ~init:initial ~f:(fun m e ->
+        let _, mach = m in
+        let _, res = mach.action mach.initial e in
+        res, mach)
+    in
+    m
   ;;
 end

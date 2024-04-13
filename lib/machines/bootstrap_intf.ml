@@ -2,15 +2,11 @@ module type Serializable = Signatures.Common.Serializable
 
 module Logmsg = Log_intf.Logmsg
 
-type event = unit
-type ('key, 'value) response = ('key, 'value) Logmsg.t list
-
 module type Bootstrap = sig
   type key
   type value
-  type state
 
-  val machine : string -> (event, (key, value) response, state) Kernel.Mealy.t
+  val generate_msgs : string -> [> `Delete of key | `Insert of key * value ] list
 end
 
 module type Interface = sig
