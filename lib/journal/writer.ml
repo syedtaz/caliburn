@@ -1,3 +1,5 @@
+open Core
+
 module Writer : sig
   type t
 
@@ -5,22 +7,25 @@ module Writer : sig
   val append : t -> action:Action.t -> unit
   val close : t -> unit
   val exceeds : t -> int -> bool
+  val filename : t -> string
+  val rewrite : t -> Action.t list -> unit
 end = struct
   type t =
     { fd : Core_unix.File_descr.t
+    ; path : string
     ; mutable size : int
     ; mutable sq : int
     }
 
   module Private = struct
     let create_record (action : Action.t) =
-      Action.to_json action |> Yojson.to_string |> String.cat "\n" |> Bytes.of_string
+      Action.to_json action |> Yojson.to_string |> String.(^) "\n" |> Bytes.of_string
     ;;
 
     let create_summary (sq : int) =
       `Assoc [ "sequence", `Int sq ]
       |> Yojson.to_string
-      |> String.cat "\n"
+      |> String.(^) "\n"
       |> Bytes.of_string
     ;;
 
@@ -37,7 +42,7 @@ end = struct
   let create ~(sq : int) ~(path : string) =
     let open Core_unix in
     let fd = openfile ~mode:[ O_CREAT; O_WRONLY; O_APPEND ] path in
-    let t = { fd; size = 0; sq } in
+    let t = { fd; path; size = 0; sq } in
     Private.write_and_sync t (Private.create_summary sq);
     t
   ;;
@@ -53,7 +58,14 @@ end = struct
     close writer.fd
   ;;
 
+  let filename writer = Core_unix.File_descr.to_string writer.fd
   let exceeds t quant = t.size > quant
+
+  let rewrite writer actions =
+    let rewriter = create ~sq:0 ~path:(writer.path ^ ".xlog")in
+    List.iter actions ~f:(fun x -> append rewriter ~action:x);
+    close rewriter;
+    Core_unix.remove (filename writer);
 end
 
 include Writer
