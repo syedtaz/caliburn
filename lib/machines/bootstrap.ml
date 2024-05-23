@@ -13,19 +13,25 @@ module Make (S : Serializable) :
     let load path fd =
       let stat = Core_unix.stat path in
       let nbytes = stat.st_size in
-      (* Unsafe *)
-      Bigstring_unix.map_file ~shared:false fd (Int64.to_int_exn nbytes)
+      match Int64.to_int nbytes with
+      | Some x when x = 0 -> None
+      | _ -> Some (Bigstring_unix.map_file ~shared:false fd (Int64.to_int_exn nbytes))
     ;;
 
+    (* Unsafe *)
+
     let read path fd =
-      let buf = load path fd in
-      let rec aux prev acc =
-        let res = Logmsg.bin_read_t S.bin_read_key S.bin_read_value buf ~pos_ref in
-        match prev = !pos_ref with
-        | true -> List.rev acc
-        | false -> aux !pos_ref (res :: acc)
-      in
-      aux !pos_ref []
+      let buf_opt = load path fd in
+      match buf_opt with
+      | None -> []
+      | Some buf ->
+        let rec aux prev acc =
+          let res = Logmsg.bin_read_t S.bin_read_key S.bin_read_value buf ~pos_ref in
+          match prev = !pos_ref with
+          | true -> List.rev acc
+          | false -> aux !pos_ref (res :: acc)
+        in
+        aux !pos_ref []
     ;;
   end
 

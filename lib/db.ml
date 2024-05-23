@@ -18,10 +18,16 @@ struct
           Kernel.Mealy.s
     }
 
+  let debug_msg msgs =
+    let keyf k = S.sexp_of_key k |> Sexp.to_string_hum in
+    List.iter msgs ~f:(function
+      | `Delete k -> Format.printf "Delete %s.\n" (keyf k)
+      | `Insert (k, _) -> Format.printf "Insert %s with some value.\n" (keyf k))
+  ;;
+
   let open_db path : (t, [> `Cannot_determine ]) result =
-    let msgs : (key, value) Machine.Memtable_intf.event list =
-      Bootstrap.generate_msgs path
-    in
+    let msgs = Bootstrap.generate_msgs path in
+    debug_msg msgs;
     let machine =
       Kernel.Mealy.( >>> ) (Memtable.from_msgs msgs) (Log.machine path)
       |> Kernel.Mealy.unfold
